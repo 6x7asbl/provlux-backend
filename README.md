@@ -13,6 +13,12 @@ Fetch every data about ``grocery_or_supermarket`` category in a ``5000``radius a
 ruby fetcher.rb places_updater update_all_by_category grocery_or_supermarket 49.68333,5.81667 5000
 ````
 
+Fetch coordinates and zipcode for a given city list (YML format, see ``data/province-luxembourg.yml`` for an example)
+
+````
+ruby fetcher.rb cities_updater get_coordinates data/province-luxembourg.yml Belgium
+````
+
 ## List of categories
 
 - accounting

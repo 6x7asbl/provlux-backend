@@ -2,7 +2,7 @@ class WebParser
   require 'nokogiri'
   require 'open_uri_redirections'
 
-  @social_networks = %w(instagram pinterest linkedin youtube vimeo vine medium xing)
+  @social_networks = %w(instagram pinterest linkedin youtube vimeo vine medium xing foursquare)
 
   def initialize(url)
     @url = url
@@ -81,6 +81,14 @@ class WebParser
     Regexp.new(/javascript\:/)
   end
 
+  def foursquare_regexp
+    Regexp.new(/http(s)?:\/\/(www.)?foursquare\.com\/(.+)/)
+  end
+
+  def foursquare_blacklist_regexp
+    Regexp.new(/javascript\:/)
+  end
+
   def linkedin_regexp
     Regexp.new(/http(s)?:\/\/(www.)?linkedin\.com\/company\/(.+)/)
   end
@@ -151,6 +159,11 @@ class WebParser
     end
   end
 
+
+  def meta_description
+    tag = html_document.at("//meta[@name='description']/@content")
+    tag.value if tag
+  end
 
   def meta_article_publisher
     tag = html_document.at("//meta[@property='article:publisher']/@content")

@@ -183,24 +183,29 @@ class PlacesUpdater < Thor
 
 
   def get_photos(photos, interest_id)
-    # puts "photos detection disabled"
-    for photo in photos
-      filename  = photo['photo_reference']
-      image_uid = dragonfly.store(open("https://maps.googleapis.com/maps/api/place/photo?photoreference=#{photo['photo_reference']}&maxwidth=#{photo['width']}&key=#{ENV['GOOGLE_PLACES_API_KEY']}").read)
-      sql_request = "INSERT INTO pictures (image_uid, image_name, interest_id, created_at, updated_at) VALUES ('#{image_uid}', '#{image_uid.split('/').last}', '#{interest_id}', '#{Time.now}', '#{Time.now}')"
-      sql_result  = mysql.query(sql_request)
-    end
+    puts "photos detection disabled"
+    # for photo in photos
+    #   filename  = photo['photo_reference']
+    #   image_uid = dragonfly.store(open("https://maps.googleapis.com/maps/api/place/photo?photoreference=#{photo['photo_reference']}&maxwidth=#{photo['width']}&key=#{ENV['GOOGLE_PLACES_API_KEY']}").read)
+    #   sql_request = "INSERT INTO pictures (image_uid, image_name, interest_id, created_at, updated_at) VALUES ('#{image_uid}', '#{image_uid.split('/').last}', '#{interest_id}', '#{Time.now}', '#{Time.now}')"
+    #   sql_result  = mysql.query(sql_request)
+    # end
   end
 
   def get_opening_hours(opening_hours, interest_id)
-    values = []
-    for opening_hour in opening_hours
-      values.push("('#{interest_id}', '#{opening_hour['open']['day']}', '#{opening_hour['open']['time']}', '#{opening_hour['close']['time']}', '#{Time.now}', '#{Time.now}')")
+    begin
+      values = []
+      for opening_hour in opening_hours
+        values.push("('#{interest_id}', '#{opening_hour['open']['day']}', '#{opening_hour['open']['time']}00', '#{opening_hour['close']['time']}00', '#{Time.now}', '#{Time.now}')")
+      end
+
+      sql_request = "INSERT INTO opening_hours (interest_id, day_of_week, open_time, close_time, created_at, updated_at) VALUES #{values.join(',')}"
+      sql_result  = mysql.query(sql_request)
+    rescue => e
+      puts opening_hours.inspect
+      puts interest_id.inspect
+      raise e
     end
-
-    sql_request = "INSERT INTO opening_hours (interest_id, day_of_week, open_time, close_time, created_at, updated_at) VALUES #{values.join(',')}"
-    sql_result  = mysql.query(sql_request)
-
   end
 
   desc "update_all_by_category category coordinates radius", "update every place in every category within <radius> around <coordinates>"

@@ -9,9 +9,9 @@ class CitiesUpdater < Thor
     cities = YAML.load_file(file)
     results = []
     for city in cities
-      sql_request = "SELECT id FROM cities WHERE name = '#{city}'"
+      sql_request = "SELECT id FROM cities WHERE name = '#{mysql.escape(city)}'"
       if mysql.query(sql_request).count > 0 and not options[:force]
-        puts "[get_coordinates] skipping look for #{city}, #{country_name}"
+        puts "\033[32m[get_coordinates] skipping look for #{city}, #{country_name}\033[0m"
         next
       else
         puts "[get_coordinates] look for #{city}, #{country_name}"
@@ -43,7 +43,7 @@ class CitiesUpdater < Thor
       end
     end
 
-    raise results.inspect
+    puts "\033[32m[get_coordinates] Done\033[0m"
 
   end
 end

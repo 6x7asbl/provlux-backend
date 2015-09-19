@@ -101,13 +101,13 @@ class WebParser
     begin
       @document ||= open(URI.parse(@url), :allow_redirections => :safe).read
     rescue URI::InvalidURIError
-      puts "[error] URI::InvalidURIError (#{@url})"
+      puts "[error] URI::InvalidURIError (#{@url})".colorize(:red)
     rescue OpenURI::HTTPError
-      puts "[error] OpenURI::HTTPError (#{@url})"
+      puts "[error] OpenURI::HTTPError (#{@url})".colorize(:red)
     rescue Zlib::DataError
-      puts "[error] Zlib::DataError (#{@url})"
+      puts "[error] Zlib::DataError (#{@url})".colorize(:red)
     rescue => e
-      puts "[error] #{e} (#{@url})"
+      puts "[error] #{e} (#{@url})".colorize(:red)
     end
   end
 
@@ -137,19 +137,24 @@ class WebParser
 
   def scanned_url(regexp)
     begin
-      URI.extract(html_document.to_html).select{|href|
+      documents_urls.select{|href|
         href.match(regexp)[0] if href.match(regexp)
       }
-    rescue
-      puts "TODO : unknown error"
+    rescue => e
+      puts "TODO : handle #{e}".colorize(:red)
+      puts "#{e.inspect}".colorize(:red)
       return []
     end
+  end
+
+  def documents_urls
+    @documents_urls ||= URI.extract(html_document.to_html)
   end
 
   def twitter_urls
     if meta_twitter_site
       # TODO: force active field to true?
-      meta_twitter_site.gsub(/@/, '')
+      ["https://twitter.com/#{meta_twitter_site.gsub(/@/, '')}"]
     elsif meta_twitter_site_id
       raise meta_twitter_site_id.inspect
     elsif meta_twitter_creator

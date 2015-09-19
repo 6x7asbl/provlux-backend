@@ -5,6 +5,7 @@ require 'json'
 require 'open-uri'
 require 'dotenv'
 require 'dragonfly'
+require 'colorize'
 Dotenv.load
 
 ENV['FETCHER_ROOT'] = File.dirname(__FILE__)
@@ -17,6 +18,8 @@ errors << "Missing MYSQL_USERNAME environment variable"        if ENV['MYSQL_USE
 errors << "Missing MYSQL_PASSWORD environment variable"        if ENV['MYSQL_PASSWORD'].nil?
 errors << "Missing MYSQL_DATABASE environment variable"        if ENV['MYSQL_DATABASE'].nil?
 errors << "Missing IMAGE_PATH environment variable"            if ENV['IMAGE_PATH'].nil?
+errors << "Missing IRONMQ_TOKEN environment variable"          if ENV['IRONMQ_TOKEN'].nil?
+errors << "Missing IRONMQ_PROJECT environment variable"        if ENV['IRONMQ_PROJECT'].nil?
 
 
 Dragonfly.app.configure do
@@ -35,18 +38,31 @@ end
 
 require "#{ENV['FETCHER_ROOT']}/workers/places_updater"
 require "#{ENV['FETCHER_ROOT']}/workers/cities_updater"
+require "#{ENV['FETCHER_ROOT']}/test/web_parser"
+require "#{ENV['FETCHER_ROOT']}/lib/mq"
 
 def dragonfly
   Dragonfly.app
+end
+
+def start_fetcher
+  begin
+    Fetcher.start(ARGV)
+  rescue => e
+    # Do something with the error, like notifying Airbrake
+    STDERR.puts e
+    start_fetcher
+  end
 end
 
 begin
   if errors.any?
     puts errors
   else
-    Fetcher.start(ARGV)
+    start_fetcher
   end
 rescue => e
   # Do something with the error, like notifying Airbrake
-  raise e
+  STDERR.puts e
+  start_fetcher
 end
